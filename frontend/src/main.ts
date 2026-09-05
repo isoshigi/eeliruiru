@@ -2,7 +2,7 @@
 // 元: public/app.js window.addEventListener('DOMContentLoaded', ...) ブロック
 
 import { sfx } from "./impl/audio.js";
-import { actionPullOut, actionSort, startGame } from "./impl/gameActions.js";
+import { actionPullOut, actionSort, resetWok, startGame } from "./impl/gameActions.js";
 import { gameState } from "./impl/gameStore.js";
 import { initParticles } from "./impl/particles.js";
 import { buildShareText } from "./pure/rankingLogic.js";
@@ -33,6 +33,14 @@ function init(): void {
   $("btn-tutorial-start").addEventListener("click", startTutorialMode);
   $("btn-tut-quit").addEventListener("click", () => {
     clearAllHighlights();
+    // 中断しても調理タイマーが裏で回り続け、タイトル画面で焦げミスが
+    // 発火するため、タイマーを止めてプレイ状態と鍋を片付ける
+    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+    if (gameState.cookInterval) clearInterval(gameState.cookInterval);
+    if (gameState.rushTimer) clearTimeout(gameState.rushTimer);
+    gameState.isPlaying = false;
+    gameState.isTutorial = false;
+    resetWok();
     $("tutorial-banner").classList.add("hidden");
     els.tutBadge?.classList.add("hidden");
     gameState.isTutorial = false;
