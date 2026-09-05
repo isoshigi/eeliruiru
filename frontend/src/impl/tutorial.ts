@@ -3,6 +3,7 @@
 //     applyTutStep / endTutorialMode
 // 進行条件の判定は pure/tutorialLogic.ts に委譲する。
 
+import { getCookStatus } from "../pure/cook.js";
 import { ITEMS, type Item } from "../pure/items.js";
 import { TUTORIAL_TOTAL_STEPS, isTutorialFinished } from "../pure/tutorialLogic.js";
 import { sfx } from "./audio.js";
@@ -114,6 +115,7 @@ export function applyTutStep(stepIdx: number): void {
     if (gameState.wok.eelCount === 0) {
       gameState.wok.eelCount = 2;
       gameState.wok.cookProgress = 60; // 黄金ゾーン直下
+      gameState.wok.status = getCookStatus(gameState.wok.cookProgress);
       updateWokUI();
     }
   }

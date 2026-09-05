@@ -1,7 +1,7 @@
 // ランキング表示・登録UI（非純粋: DOM + 通信 + 保存）
 // 元: public/app.js renderRankingRows / updateRankingTabs / renderStartRanking /
 //     switchRankingScope / checkAndHandleHighScore
-// ※旧実装の挙動を据え置きで移設する（バグ修正は行わない）。
+// タブのクリック配線は main.ts の init で1回だけ行う。
 import { getMedalLabel, sanitizePlayerName, sortRankings } from "../pure/rankingLogic.js";
 import { gameState } from "./gameStore.js";
 import { fetchRankings, postScore } from "./rankingApi.js";
@@ -69,11 +69,7 @@ export function switchRankingScope(scope) {
     if (rankingScope === scope)
         return;
     rankingScope = scope;
-    renderStartRanking();
-    if ($("ranking-tab-daily"))
-        $("ranking-tab-daily").addEventListener("click", () => switchRankingScope("daily"));
-    if ($("ranking-tab-alltime"))
-        $("ranking-tab-alltime").addEventListener("click", () => switchRankingScope("alltime"));
+    void renderStartRanking();
 }
 export function checkAndHandleHighScore(score, rankTitle) {
     const inputContainer = $("high-score-input-container");

@@ -61,6 +61,9 @@ export function endGame(): void {
   if (gameState.timerInterval) clearInterval(gameState.timerInterval);
   if (gameState.cookInterval) clearInterval(gameState.cookInterval);
   if (gameState.rushTimer) clearTimeout(gameState.rushTimer);
+  // RUSH中に終了するとバッジが結果画面に残るため消しておく
+  gameState.rushMode = false;
+  els.rushBadge?.classList.add("hidden");
 
   $("result-score").innerText = String(gameState.score);
   $("stat-cooked").innerText = String(gameState.stats.cooked);
@@ -125,8 +128,9 @@ export function actionSort(chosenType: ChosenType): void {
       const lostCount = gameState.wok.eelCount;
       if (lostCount > 0) {
         gameState.stats.burned += lostCount;
-        resetWok();
+        // handleMissは鍋の残数から減点(120×匹)を算出するため、resetWokより先に呼ぶ
         handleMiss(`危険物混入！ウナギ${lostCount}匹全滅！`);
+        resetWok();
       } else {
         resetWok();
         handleMiss("危険物を炒めてしまった！");
@@ -225,7 +229,8 @@ export function actionPullOut(): void {
     } else {
       showJudgementText(`美味！${finalPoints}pt獲得！`, "#fbbf24");
     }
-  } else if (gameState.wok.status === "raw") {
+  } else if (gameState.wok.status === "raw" || gameState.wok.status === "empty") {
+    // empty: 投入直後で初回tick前の救済（調理度0=生揚げ扱い）
     sfx.sizzle(1);
     addScore(calcRawPullPoints(count));
     gameState.stats.cooked += count;
