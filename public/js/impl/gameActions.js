@@ -51,6 +51,9 @@ export function endGame() {
         clearInterval(gameState.cookInterval);
     if (gameState.rushTimer)
         clearTimeout(gameState.rushTimer);
+    // RUSH中に終了するとバッジが結果画面に残るため消しておく
+    gameState.rushMode = false;
+    els.rushBadge?.classList.add("hidden");
     $("result-score").innerText = String(gameState.score);
     $("stat-cooked").innerText = String(gameState.stats.cooked);
     $("stat-trashed").innerText = String(gameState.stats.trashed);
