@@ -6,7 +6,11 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply eeliruiru-db --local",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:frontend": "tsc --noEmit -p tsconfig.frontend.json",
+    "build:frontend": "tsc -p tsconfig.frontend.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +24,7 @@
     "@cloudflare/workers-types": "^5.20260905.1",
     "@types/node": "^26.4.1",
     "typescript": "^7.0.2",
+    "vitest": "^5.0.0",
     "wrangler": "^4.129.0"
   }
 }

@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": false,
+    "outDir": "public/js",
+    "rootDir": "frontend/src",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true
+  },
+  "include": ["frontend/src/**/*.ts"]
+}
