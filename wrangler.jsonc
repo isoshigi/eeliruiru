@@ -18,12 +18,6 @@
 			"migrations_dir": "migrations"
 		}
 	],
-	"routes": [
-		{
-			"pattern": "eeliruiru.isoshigi.dev/*",
-			"zone_name": "isoshigi.dev"
-		}
-	],
 	"observability": {
 		"enabled": true
 	}
