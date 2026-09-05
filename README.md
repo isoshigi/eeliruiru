@@ -88,10 +88,45 @@ TOP5入りすると名前入力で端末内ランキングに登録できる。X
 
 ## 技術構成
 
-- `index.html` 単一ファイル
-- Tailwind CSS（CDN）、Google Fonts（Yuji Syuku / Zen Maru Gothic）
-- Vanilla JS、Canvas パーティクル、Web Audio API
-- ランキング保存は `localStorage（iru_iru_kaku_rankings_v1）` のみ
+- フロント：`public/index.html`＋`public/app.js`（Tailwind CDN、Google Fonts、Canvasパーティクル）
+- 音源：`public/assets/audio/*.mp3` を優先再生、欠落時は Web Audio 合成フォールバック
+- API：Workers＋Hono（TypeScript、`src/worker.ts`）
+- DB：D1（`scores` テーブル、日次 `season`＝JST日付＋全期間の2軸）
+- ランキング：オンライン（D1）優先、取得失敗時は端末内 `localStorage` にフォールバック
+
+## 開発手順
+
+前提：Node.js（`mise.toml` のバージョン）
+
+```sh
+npm install
+npm run db:migrate:local   # ローカルD1にマイグレーション適用
+npm run dev                # http://127.0.0.1:8787 で起動
+npm run typecheck          # TypeScript検査
+```
+
+本番D1は作成済み（`eeliruiru-db`、APAC、テーブル適用済み）。再作成時のみ：
+
+```sh
+npx wrangler d1 create eeliruiru-db
+# 表示された database_id を wrangler.jsonc に設定
+npx wrangler d1 migrations apply eeliruiru-db --remote
+npx wrangler deploy
+```
+
+## 音源ファイルの配置
+
+`public/assets/audio/` に以下の6ファイルを置く（128kbps以下・各1MB以下目安）。
+存在しない音は自動で合成フォールバックになる。
+
+- `bgm.mp3`、`sizzle.mp3`、`trash.mp3`、`dolphin.mp3`、`pull.mp3`、`miss.mp3`
+
+## スコアAPI仕様
+
+- `GET /api/rankings?scope=daily|alltime&limit=20`（上限50）
+- `POST /api/scores`：`{name（1-20文字）, score（0-99999）, rankTitle, fried, discarded, saved, burned}`
+  - 物理上限（60000点）超過・不正値は400、同一IP 10req/min超過は429
+  - Turnstileなし（IPハッシュ＋レート制限＋サーバー検証のみ）
 
 ## 制限事項：スコアアタックについて
 
@@ -105,13 +140,23 @@ X共有も自己申告ベースのため、正式なスコアアタック機能�
 
 ## TODO
 
-- [ ] オンラインスコアアタック（サーバー、ランキングAPI、不正対策）
-- [ ] 専用音源ファイルの用意・差し替え（現状は Web Audio 合成の仮音源、BGMメロディ・炒め・破棄・イルカ・引き上げ・ミスの各SE）
+- [x] オンラインスコアアタック（Workers＋D1、日次/全期間、不正対策は簡易版）
+- [ ] 専用音源ファイルの用意（現状は Web Audio 合成フォールバックで動作中）
 
 ## ファイル構成
 
 ```text
 ./
-├── index.html   # ゲーム本体
+├── public/
+│   ├── index.html        # ゲーム画面
+│   ├── app.js            # ゲーム本体
+│   └── assets/audio/     # BGM・SE（bgm/sizzle/trash/dolphin/pull/miss.mp3）
+├── src/
+│   ├── worker.ts         # Hono API（/api/health, /api/rankings, /api/scores）
+│   └── db.ts             # D1クエリ層・JST日付
+├── migrations/
+│   └── 0001_create_scores.sql
+├── wrangler.jsonc
+├── package.json
 └── README.md
 ```

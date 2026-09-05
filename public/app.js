@@ -1,382 +1,75 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>イール炒る、要る？</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Zen Maru Gothic', sans-serif;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-            overflow: hidden;
-            background-color: #0d0605;
-        }
-        .font-chinese {
-            font-family: 'Yuji Syuku', serif;
-        }
 
-        /* ネオン・発光・輝き */
-        .neon-title {
-            text-shadow: 0 0 5px #fbbf24, 0 0 15px #f59e0b, 0 0 30px #dc2626;
-        }
-
-        /* 提灯アニメーション */
-        @keyframes lantern-swing {
-            0%, 100% { transform: rotate(-4deg); }
-            50% { transform: rotate(4deg); }
-        }
-        .lantern-anim {
-            animation: lantern-swing 3s ease-in-out infinite;
-            transform-origin: top center;
-        }
-
-        /* 鍋の過熱アニメーション */
-        @keyframes sizzle-super {
-            0% { transform: scale(1) rotate(0deg); box-shadow: 0 0 20px #f59e0b, inset 0 0 20px #ef4444; }
-            50% { transform: scale(1.03) rotate(1deg); box-shadow: 0 0 40px #fbbf24, inset 0 0 35px #dc2626; }
-            100% { transform: scale(0.98) rotate(-1deg); box-shadow: 0 0 20px #f59e0b, inset 0 0 20px #ef4444; }
-        }
-        .sizzle-perfect-super {
-            animation: sizzle-super 0.25s infinite alternate;
-            border-color: #fef08a !important;
-        }
-
-        /* 湯気・煙アニメーション */
-        @keyframes steam-rise-fast {
-            0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 0.9; }
-            100% { transform: translateY(-50px) scale(1.8) rotate(15deg); opacity: 0; }
-        }
-        .steam-fast {
-            animation: steam-rise-fast 0.7s infinite ease-out;
-        }
-
-        /* 激しいシェイク */
-        @keyframes screen-shake-heavy {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            20% { transform: translate(-10px, 8px) rotate(-2deg); }
-            40% { transform: translate(10px, -8px) rotate(2deg); }
-            60% { transform: translate(-6px, -6px) rotate(-1deg); }
-            80% { transform: translate(6px, 6px) rotate(1deg); }
-        }
-        .shake-heavy {
-            animation: screen-shake-heavy 0.25s ease-in-out;
-        }
-
-        /* 判定テキストアニメーション */
-        @keyframes popup-bounce {
-            0% { transform: translate(-50%, -50%) scale(0.2) rotate(-10deg); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.3) rotate(5deg); opacity: 1; }
-            100% { transform: translate(-50%, -80%) scale(1) rotate(0deg); opacity: 0; }
-        }
-        .popup-text {
-            animation: popup-bounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        /* 背景中華模様 */
-        .bg-chinese-pattern {
-            background-color: #1a0806;
-            background-image: radial-gradient(#3a150d 3px, transparent 3px), radial-gradient(#2b0c06 3px, #1a0806 3px);
-            background-size: 30px 30px;
-            background-position: 0 0, 15px 15px;
-        }
-
-        /* チュートリアル用ハイライトアニメーション */
-        .tutorial-highlight {
-            position: relative;
-            z-index: 60 !important;
-            box-shadow: 0 0 0 6px #fbbf24, 0 0 30px #f59e0b !important;
-            animation: pulse-border 0.8s infinite alternate ease-in-out;
-        }
-        @keyframes pulse-border {
-            0% { box-shadow: 0 0 0 4px #fbbf24, 0 0 15px #f59e0b; }
-            100% { box-shadow: 0 0 0 10px #fef08a, 0 0 35px #ef4444; }
-        }
-
-        ::-webkit-scrollbar { display: none; }
-    </style>
-</head>
-<body id="game-body" class="h-screen w-screen text-slate-100 bg-chinese-pattern flex flex-col justify-between select-none relative overflow-hidden">
-
-    <!-- エフェクト描画用 Canvas -->
-    <canvas id="fx-canvas" class="absolute inset-0 pointer-events-none z-30"></canvas>
-
-    <!-- 判定ポップアップ演出コンテナ -->
-    <div id="judgement-container" class="absolute inset-0 pointer-events-none z-40"></div>
-
-    <!-- 背景装飾：提灯 -->
-    <div class="absolute top-2 left-3 z-10 pointer-events-none lantern-anim hidden sm:block">
-        <div class="bg-red-600 text-amber-200 font-chinese text-xl px-2 py-3 rounded-2xl border-2 border-amber-400 shadow-lg text-center leading-tight">
-            居<br>る<br>閣
-        </div>
-    </div>
-    <div class="absolute top-2 right-3 z-10 pointer-events-none lantern-anim hidden sm:block" style="animation-delay: 1.5s;">
-        <div class="bg-red-600 text-amber-200 font-chinese text-xl px-2 py-3 rounded-2xl border-2 border-amber-400 shadow-lg text-center leading-tight">
-            炒<br>る<br>殿
-        </div>
-    </div>
-
-    <!-- ヘッダー（スコア & タイム & BGM） -->
-    <header class="w-full bg-red-950/90 border-b-4 border-amber-500 px-3 md:px-6 py-2 flex justify-between items-center z-20 backdrop-blur-md shadow-2xl">
-        <div class="flex items-center space-x-2">
-            <h1 class="font-chinese text-amber-400 text-xl md:text-3xl font-black tracking-widest neon-title flex items-center gap-1">
-                <span>居る居る閣</span>
-            </h1>
-            <button id="btn-audio-toggle" class="bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs px-2.5 py-1 rounded-full border border-amber-500/50 flex items-center gap-1 cursor-pointer transition">
-                <span id="audio-icon">🔇</span> <span id="audio-text">BGM OFF</span>
-            </button>
-            <span id="rush-badge" class="hidden bg-gradient-to-r from-yellow-300 via-amber-500 to-red-600 text-black text-xs md:text-sm font-black px-3 py-1 rounded-full animate-bounce shadow-lg border-2 border-white">
-                🔥 爆熱・炒り放題RUSH!!
-            </span>
-            <span id="tut-badge" class="hidden bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full animate-pulse border border-blue-300 shadow">
-                🔰 練習モード（時間制限なし）
-            </span>
-        </div>
-
-        <div class="flex items-center space-x-3 md:space-x-8">
-            <div class="text-right">
-                <div class="text-[10px] md:text-xs text-amber-300/80 font-bold tracking-widest">SCORE</div>
-                <div id="score-text" class="text-2xl md:text-4xl font-black text-amber-300 tracking-wider filter drop-shadow">0</div>
-            </div>
-            <div class="text-right bg-black/40 px-3 py-1 rounded-xl border border-amber-600/40">
-                <div class="text-[10px] md:text-xs text-amber-300/80 font-bold tracking-widest">TIME</div>
-                <div id="timer-text" class="text-2xl md:text-4xl font-black text-red-400 w-12 text-center">60</div>
-            </div>
-        </div>
-    </header>
-
-    <!-- メイン対戦・操作ゾーン -->
-    <main class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 p-2 md:p-4 max-w-6xl mx-auto w-full relative z-10 overflow-hidden items-center">
-        
-        <!-- コンボインジケーター -->
-        <div id="combo-container" class="absolute top-1 left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-transform duration-200 transform scale-0">
-            <div class="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-black font-black px-6 py-1.5 rounded-full text-xl shadow-2xl border-4 border-white flex items-center space-x-1 animate-pulse">
-                <span id="combo-count" class="text-2xl md:text-3xl">0</span>
-                <span>連炒り COMBO!</span>
-            </div>
-        </div>
-
-        <!-- 左エリア：仕分けゾーン -->
-        <section id="left-zone" class="bg-gradient-to-b from-amber-950/60 to-stone-900/80 border-2 border-amber-600/70 rounded-3xl p-3 md:p-4 flex flex-col justify-between relative shadow-2xl backdrop-blur-sm h-full max-h-[460px]">
-            <div class="flex justify-between items-center text-xs text-amber-300 font-bold border-b border-amber-800/60 pb-1">
-                <span class="flex items-center gap-1">⚡ 【左】食材を見極めて瞬時に捌け！</span>
-                <span class="hidden md:inline text-amber-400/70">[W/↑]炒る [S/↓]要らん [Space]居る</span>
-            </div>
-
-            <!-- 食材表示カード -->
-            <div class="flex-1 flex flex-col items-center justify-center my-2 relative">
-                <div id="item-card" class="w-40 h-40 md:w-52 md:h-52 bg-gradient-to-b from-stone-800 via-stone-900 to-black border-4 border-amber-500/80 rounded-3xl shadow-2xl flex flex-col items-center justify-center p-2 relative transition-all duration-150">
-                    <div id="item-emoji" class="text-5xl md:text-7xl mb-1 filter drop-shadow-2xl">🐍</div>
-                    <div id="item-name" class="text-base md:text-xl font-black text-amber-200 text-center tracking-wide">新鮮ウナギ</div>
-                    <div id="item-sub" class="text-xs text-amber-400/90 font-bold">（Eel）</div>
-                </div>
-            </div>
-
-            <!-- 左エリア操作ボタン -->
-            <div class="grid grid-cols-3 gap-2 w-full">
-                <button id="btn-iru-pan" class="bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 hover:from-amber-300 hover:to-amber-600 active:translate-y-1 text-black font-black py-3 md:py-4 rounded-2xl shadow-xl border-b-4 border-amber-950 flex flex-col items-center justify-center cursor-pointer transition">
-                    <span class="text-[10px] md:text-xs opacity-90 font-bold">鍋へ！(最大5匹)</span>
-                    <span class="text-base md:text-xl font-black">🔥 炒る！</span>
-                    <span class="text-[9px] opacity-70 hidden md:inline">[W / ↑]</span>
-                </button>
-
-                <button id="btn-iran" class="bg-gradient-to-b from-slate-600 via-slate-700 to-slate-900 hover:from-slate-500 hover:to-slate-800 active:translate-y-1 text-slate-100 font-black py-3 md:py-4 rounded-2xl shadow-xl border-b-4 border-slate-950 flex flex-col items-center justify-center cursor-pointer transition">
-                    <span class="text-[10px] md:text-xs opacity-90 font-bold">ゴミ箱へ破棄</span>
-                    <span class="text-base md:text-xl font-black">🗑️ 要らん</span>
-                    <span class="text-[9px] opacity-70 hidden md:inline">[S / ↓]</span>
-                </button>
-
-                <button id="btn-iru-dolphin" class="bg-gradient-to-b from-cyan-400 via-cyan-500 to-blue-700 hover:from-cyan-300 hover:to-blue-600 active:translate-y-1 text-white font-black py-3 md:py-4 rounded-2xl shadow-xl border-b-4 border-blue-950 flex flex-col items-center justify-center cursor-pointer transition">
-                    <span class="text-[10px] md:text-xs opacity-90 font-bold">海へ逃がす</span>
-                    <span class="text-base md:text-xl font-black">🐬 居る！</span>
-                    <span class="text-[9px] opacity-70 hidden md:inline">[Space]</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- 右エリア：調理ゾーン（中華鍋） -->
-        <section id="right-zone" class="bg-gradient-to-b from-red-950/60 to-stone-900/80 border-2 border-red-600/70 rounded-3xl p-3 md:p-4 flex flex-col justify-between relative shadow-2xl backdrop-blur-sm h-full max-h-[460px]">
-            <div class="flex justify-between items-center text-xs text-red-300 font-bold border-b border-red-800/60 pb-1">
-                <span class="flex items-center gap-1">🍳 【右】黄金タイミングで一括引き揚げ！</span>
-                <span class="hidden md:inline text-red-300/70">[Enter / Click] 皿へ盛る</span>
-            </div>
-
-            <!-- 調理ステータス・メーター情報（鍋の外側にスッキリ配置） -->
-            <div class="flex flex-col items-center justify-center pt-2 space-y-1 z-20">
-                <!-- 個数バッジ ＆ 状態テキスト -->
-                <div class="flex items-center justify-center gap-2">
-                    <span id="wok-badge" class="bg-gradient-to-r from-amber-400 to-yellow-300 text-black text-xs font-black px-3 py-0.5 rounded-full border border-white shadow-md">
-                        0/5 匹
-                    </span>
-                    <span id="wok-status-text" class="text-xs md:text-sm font-bold text-stone-400 truncate">鍋は空っぽ</span>
-                </div>
-
-                <!-- 焼き加減メーター (鍋の外に出て見やすさアップ) -->
-                <div class="w-full max-w-[200px] md:max-w-[240px] h-4 bg-stone-950 rounded-full overflow-hidden border-2 border-stone-700 relative shadow-inner">
-                    <div id="cook-progress" class="h-full w-0 bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-75"></div>
-                    <!-- ベストタイミングゾーンガイド（50%〜85%） -->
-                    <div class="absolute top-0 bottom-0 left-[50%] w-[35%] bg-yellow-300/30 pointer-events-none border-x-2 border-yellow-300 shadow-[0_0_10px_#fef08a]"></div>
-                </div>
-            </div>
-
-            <!-- 中華鍋ディスプレイ (鍋の中身はウナギグラフィック専用) -->
-            <div class="flex-1 flex flex-col items-center justify-center my-1 relative">
-                <div id="wok-container" class="w-44 h-44 md:w-56 md:h-56 rounded-full bg-stone-950 border-8 border-stone-800 shadow-2xl relative flex items-center justify-center overflow-hidden transition-all duration-200 cursor-pointer group">
-                    
-                    <!-- 鍋底の炎 -->
-                    <div id="wok-fire" class="absolute inset-0 bg-gradient-to-t from-red-600 via-orange-500 to-transparent opacity-60 pointer-events-none"></div>
-
-                    <!-- 湯気 -->
-                    <div id="steam-effect" class="absolute inset-0 pointer-events-none hidden z-20">
-                        <div class="steam-fast absolute top-4 left-1/4 text-2xl">♨️</div>
-                        <div class="steam-fast absolute top-2 left-1/2 text-2xl" style="animation-delay: 0.2s">♨️</div>
-                        <div class="steam-fast absolute top-6 left-2/3 text-2xl" style="animation-delay: 0.4s">♨️</div>
-                    </div>
-
-                    <!-- 鍋の中身 (ウナギ演出専用) -->
-                    <div id="wok-content" class="z-10 flex items-center justify-center p-2 w-full max-w-[85%] transition-all duration-200 text-center select-none">
-                        <span id="wok-emoji" class="text-4xl md:text-6xl font-black text-amber-300 filter drop-shadow-md opacity-30">🍳</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 右エリア操作ボタン（引き上げ） -->
-            <button id="btn-pull-out" class="w-full bg-gradient-to-b from-red-500 via-red-600 to-red-800 hover:from-red-400 hover:to-red-700 active:translate-y-1 text-white font-black py-3 md:py-3.5 rounded-2xl shadow-xl border-b-4 border-red-950 flex flex-col items-center justify-center text-base md:text-lg cursor-pointer transition">
-                <span class="flex items-center gap-1 font-black">🍽️ 皿へ引き上げる！（要る！）</span>
-                <span id="pull-bonus-text" class="text-[10px] md:text-xs font-normal opacity-90 text-amber-200 truncate max-w-full px-1">重ね炒り（最大5匹）で超絶倍率ボーナス！</span>
-            </button>
-        </section>
-
-    </main>
-
-    <!-- スタート用モーダル（ランキング表示付き） -->
-    <div id="modal-start" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3">
-        <div class="bg-gradient-to-b from-stone-900 via-red-950 to-black border-4 border-amber-500 rounded-3xl p-4 md:p-6 max-w-xl w-full text-center shadow-2xl space-y-4 relative overflow-hidden my-auto max-h-[96vh] flex flex-col justify-between">
-            <div class="space-y-1">
-                <p class="text-amber-400 font-chinese text-base md:text-lg tracking-widest">居る居る閣 プレゼンツ</p>
-                <h1 class="text-2xl md:text-4xl font-black text-amber-300 tracking-wider neon-title filter drop-shadow">イール炒る、要る？</h1>
-                <p class="text-[11px] md:text-xs text-amber-200/80 font-bold">〜 爆熱ウナギ炒り＆最大5匹一括重ね炒りアクション 〜</p>
-            </div>
-
-            <!-- ランキング & ルール簡単ガイド -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-left my-1">
-                <!-- ハイスコアランキング -->
-                <div class="bg-black/60 border border-amber-800/80 rounded-2xl p-3 flex flex-col justify-between">
-                    <div class="text-xs font-bold text-amber-300 border-b border-amber-800/60 pb-1 flex justify-between items-center">
-                        <span>🏆 本日の売上TOP 5</span>
-                        <span class="text-[10px] text-stone-400 font-normal">居る居る閣 殿堂</span>
-                    </div>
-                    <ul id="ranking-list" class="space-y-1 text-xs my-2 min-h-[110px] flex flex-col justify-center">
-                        <!-- JSで動的生成 -->
-                    </ul>
-                </div>
-
-                <!-- 概要カード -->
-                <div class="bg-black/60 border border-amber-800/80 rounded-2xl p-3 text-xs space-y-1.5 flex flex-col justify-center text-stone-200">
-                    <div class="font-bold text-amber-300 border-b border-amber-800/60 pb-1 text-center">【仕分け＆重ね炒りの極意】</div>
-                    <p>🐍 <span class="text-amber-300 font-bold">新鮮ウナギ</span> ➔ 鍋へ(最大5匹！)</p>
-                    <p>⚡ <span class="text-slate-400 font-bold">危険物/偽物</span> ➔ ごみ箱へ破棄</p>
-                    <p>🐬 <span class="text-cyan-300 font-bold">イルカ</span> ➔ 海へ開放(RUSH突入)</p>
-                    <p class="text-[11px] text-amber-200 bg-amber-950/70 p-1.5 rounded-lg border border-amber-600/40 mt-1">
-                        💡 5匹溜めて黄金ゾーン引き上げで<span class="text-amber-300 font-black">スコア5.5倍！</span>
-                    </p>
-                </div>
-            </div>
-
-            <!-- 操作ボタン -->
-            <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
-                <button id="btn-tutorial-start" class="sm:w-1/3 bg-stone-800 hover:bg-stone-700 text-amber-300 font-bold py-3 px-3 rounded-2xl border-2 border-amber-500/50 flex items-center justify-center gap-1 cursor-pointer transition text-xs md:text-sm">
-                    📖 チュートリアル
-                </button>
-                <button id="btn-start" class="sm:w-2/3 bg-gradient-to-r from-amber-400 via-amber-500 to-red-600 hover:from-amber-300 hover:to-red-500 text-black font-black text-lg md:text-2xl py-3 rounded-2xl shadow-2xl transform active:scale-95 transition cursor-pointer border-2 border-white">
-                    🔥 開店！（すぐプレイ）
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- インタラクティブ・チュートリアル用ガイドバー -->
-    <div id="tutorial-banner" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-stone-900 via-amber-950 to-stone-900 border-4 border-amber-400 text-white rounded-2xl p-3 md:p-4 shadow-2xl max-w-xl w-[92%] flex flex-col gap-2 transition-all duration-300 hidden">
-        <div class="flex justify-between items-center border-b border-amber-700/60 pb-1">
-            <span id="tut-banner-step" class="bg-amber-400 text-black font-black text-xs px-2.5 py-0.5 rounded-full">STEP 1 / 4</span>
-            <button id="btn-tut-quit" class="text-xs text-amber-300/80 hover:text-white underline cursor-pointer">チュートリアル終了 ✕</button>
-        </div>
-        <div class="flex items-center gap-3">
-            <div id="tut-banner-icon" class="text-3xl md:text-4xl shrink-0">🐍</div>
-            <div class="flex-1">
-                <div id="tut-banner-title" class="font-black text-amber-300 text-sm md:text-base">新鮮ウナギを鍋へ入れる</div>
-                <div id="tut-banner-desc" class="text-xs text-stone-200">ハイライトされている【🔥 炒る！】を押して鍋にウナギを放り込もう！</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- リザルト用モーダル -->
-    <div id="modal-result" class="fixed inset-0 bg-black/95 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-4 border-amber-500 rounded-3xl p-5 max-w-lg w-full text-center shadow-2xl space-y-3 relative my-auto">
-            <h2 class="text-2xl md:text-3xl font-black text-amber-400 font-chinese tracking-widest neon-title">本日の営業終了！</h2>
-            
-            <div class="space-y-1 bg-black/60 py-2.5 rounded-2xl border border-amber-900/60">
-                <div class="text-[10px] md:text-xs text-stone-400 font-bold">本日獲得の売上スコア</div>
-                <div id="result-score" class="text-4xl md:text-5xl font-black text-amber-300 tracking-wider">0</div>
-            </div>
-
-            <!-- 名前入力＆ハイスコア登録 -->
-            <div id="high-score-input-container" class="bg-amber-950/60 border border-amber-500 p-2.5 rounded-2xl space-y-1.5 hidden">
-                <div class="text-xs text-amber-300 font-bold">🎉 ランクイン達成！名前を記録：</div>
-                <div class="flex gap-2 justify-center">
-                    <input type="text" id="player-name-input" maxlength="8" value="ウナギ職人" class="bg-black text-amber-200 border border-amber-500 text-xs px-3 py-1.5 rounded-xl text-center font-bold focus:outline-none w-36">
-                    <button id="btn-save-score" class="bg-amber-500 text-black font-black text-xs px-3 py-1.5 rounded-xl cursor-pointer hover:bg-amber-400">登録</button>
-                </div>
-            </div>
-
-            <div class="bg-amber-950/40 border border-amber-600/60 rounded-2xl p-2.5 space-y-0.5">
-                <div class="text-[10px] text-amber-400 font-bold">【店主からの称号】</div>
-                <div id="result-rank" class="text-sm md:text-base font-black text-amber-100 bg-black/50 border border-amber-500/50 py-1.5 px-3 rounded-xl truncate">
-                    見習いシェフ
-                </div>
-            </div>
-
-            <!-- プレイ統計 -->
-            <div class="grid grid-cols-2 gap-2 text-xs text-stone-300 text-left bg-stone-950 p-2.5 rounded-xl border border-stone-800">
-                <div>炒めたウナギ: <span id="stat-cooked" class="font-bold text-amber-400">0</span> 匹</div>
-                <div>捨てた危険物: <span id="stat-trashed" class="font-bold text-slate-300">0</span> 個</div>
-                <div>救ったイルカ: <span id="stat-saved" class="font-bold text-cyan-400">0</span> 頭</div>
-                <div>焦がしたウナギ: <span id="stat-burned" class="font-bold text-red-400">0</span> 匹</div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 pt-1">
-                <button id="btn-share" class="bg-black hover:bg-stone-800 text-white font-bold py-3 rounded-xl border border-stone-700 flex items-center justify-center space-x-1 cursor-pointer transition text-xs">
-                    <span>📱 X共有</span>
-                </button>
-                <button id="btn-home" class="bg-stone-800 hover:bg-stone-700 text-amber-300 font-bold py-3 rounded-xl border border-amber-500/50 flex items-center justify-center space-x-1 cursor-pointer transition text-xs">
-                    <span>🏠 タイトルへ</span>
-                </button>
-                <button id="btn-retry" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black py-3 rounded-xl shadow-xl cursor-pointer transition text-xs md:text-sm">
-                    🔥 もう一度！
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- Web Audio API 効果音 & 中華レトロBGM ---
+        // --- 音源ファイル優先 AudioManager（欠落時は Web Audio 合成分岐） ---
+        const AUDIO_FILES = {
+            bgm: '/assets/audio/bgm.mp3',
+            sizzle: '/assets/audio/sizzle.mp3',
+            trash: '/assets/audio/trash.mp3',
+            dolphin: '/assets/audio/dolphin.mp3',
+            pull: '/assets/audio/pull.mp3',
+            miss: '/assets/audio/miss.mp3'
+        };
         class SoundFX {
             constructor() {
                 this.ctx = null;
                 this.bgmEnabled = false;
                 this.bgmInterval = null;
                 this.noteIndex = 0;
+                this.fileAudio = null;      // { bgm: HTMLAudioElement, pools: {name: HTMLAudioElement[]} }
+                this.fileOk = {};           // name -> true/false/undefined(unknown)
+                this.seCursor = {};
+            }
+
+            ensureFileAudio() {
+                if (this.fileAudio || typeof window === 'undefined' || typeof window.Audio === 'undefined') return;
+                try {
+                    const mk = (src, volume) => {
+                        const el = new window.Audio(src);
+                        el.preload = 'auto';
+                        el.volume = volume;
+                        return el;
+                    };
+                    const pools = {};
+                    for (const [name, volume] of [['sizzle', 0.5], ['trash', 0.5], ['dolphin', 0.6], ['pull', 0.6], ['miss', 0.6]]) {
+                        pools[name] = [mk(AUDIO_FILES[name], volume), mk(AUDIO_FILES[name], volume), mk(AUDIO_FILES[name], volume)];
+                        pools[name].forEach((el) => {
+                            el.addEventListener('error', () => { this.fileOk[name] = false; });
+                            el.addEventListener('canplaythrough', () => { if (this.fileOk[name] !== false) this.fileOk[name] = true; });
+                        });
+                        this.seCursor[name] = 0;
+                    }
+                    const bgm = mk(AUDIO_FILES.bgm, 0.35);
+                    bgm.loop = true;
+                    bgm.addEventListener('error', () => { this.fileOk.bgm = false; });
+                    bgm.addEventListener('canplaythrough', () => { if (this.fileOk.bgm !== false) this.fileOk.bgm = true; });
+                    this.fileAudio = { bgm, pools };
+                } catch (e) { /* file audio unsupported -> synth only */ }
             }
 
             init() {
                 if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    try {
+                        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {}
                 }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => {});
+                }
+                this.ensureFileAudio();
+            }
+
+            playFile(name) {
+                if (!this.fileAudio || this.fileOk[name] === false) return false;
+                try {
+                    const pool = this.fileAudio.pools[name];
+                    if (!pool) return false;
+                    const el = pool[this.seCursor[name] % pool.length];
+                    this.seCursor[name]++;
+                    el.currentTime = 0;
+                    const p = el.play();
+                    if (p && typeof p.catch === 'function') p.catch(() => { this.fileOk[name] = false; });
+                    return true;
+                } catch (e) {
+                    return false;
                 }
             }
 
@@ -392,12 +85,43 @@
             }
 
             startBGM() {
+                // ファイルBGMを試し、不可なら合成BGMへ
+                if (this.fileAudio && this.fileOk.bgm !== false) {
+                    try {
+                        this.stopSynthBGM();
+                        this.fileAudio.bgm.currentTime = 0;
+                        const p = this.fileAudio.bgm.play();
+                        if (p && typeof p.catch === 'function') {
+                            p.then(() => { this.fileOk.bgm = true; }).catch(() => {
+                                this.fileOk.bgm = false;
+                                if (this.bgmEnabled) this.startSynthBGM();
+                            });
+                        }
+                        return;
+                    } catch (e) { /* fall through to synth */ }
+                }
+                this.startSynthBGM();
+            }
+
+            stopBGM() {
+                try { if (this.fileAudio) { this.fileAudio.bgm.pause(); } } catch (e) {}
+                this.stopSynthBGM();
+            }
+
+            stopSynthBGM() {
+                if (this.bgmInterval) clearInterval(this.bgmInterval);
+                this.bgmInterval = null;
+            }
+
+            startSynthBGM() {
+                if (!this.ctx) return;
                 if (this.bgmInterval) clearInterval(this.bgmInterval);
                 const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
                 const melody = [0, 2, 3, 5, 4, 3, 2, 0, 3, 5, 7, 5, 4, 3, 2, 0];
-                
+
                 this.bgmInterval = setInterval(() => {
                     if (!this.bgmEnabled || !this.ctx) return;
+                    if (this.fileOk.bgm === true) return; // ファイルBGM再生中は合成を止める
                     const freq = scale[melody[this.noteIndex % melody.length]];
                     this.playTone(freq, 'triangle', 0.15, 0.03);
                     if (this.noteIndex % 2 === 0) {
@@ -405,10 +129,6 @@
                     }
                     this.noteIndex++;
                 }, 200);
-            }
-
-            stopBGM() {
-                if (this.bgmInterval) clearInterval(this.bgmInterval);
             }
 
             playTone(freq, type, duration, gainValue = 0.1) {
@@ -428,16 +148,19 @@
             }
 
             sizzle(count = 1) {
+                if (this.playFile('sizzle')) return;
                 const baseFreq = 500 + (count - 1) * 120;
                 this.playTone(baseFreq, 'sawtooth', 0.12, 0.12);
                 setTimeout(() => this.playTone(baseFreq * 1.25, 'sine', 0.18, 0.15), 40);
             }
 
             trash() {
+                if (this.playFile('trash')) return;
                 this.playTone(180, 'square', 0.1, 0.08);
             }
 
             dolphin() {
+                if (this.playFile('dolphin')) return;
                 if (!this.ctx) return;
                 this.playTone(880, 'sine', 0.1, 0.15);
                 setTimeout(() => this.playTone(1760, 'sine', 0.25, 0.2), 60);
@@ -445,6 +168,7 @@
             }
 
             perfectPull(multiplier = 1) {
+                if (this.playFile('pull')) return;
                 if (!this.ctx) return;
                 const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
                 const notes = freqs.slice(0, 2 + multiplier);
@@ -454,6 +178,7 @@
             }
 
             miss() {
+                if (this.playFile('miss')) return;
                 if (!this.ctx) return;
                 this.playTone(120, 'sawtooth', 0.4, 0.3);
             }
@@ -581,66 +306,154 @@
         const elSteamEffect = $('steam-effect');
         const elPullBonusText = $('pull-bonus-text');
 
-        // --- LocalStorage ランキング管理 ---
+        // --- オンラインランキング（Worker + D1、localStorageフォールバック） ---
         const RANKING_KEY = 'iru_iru_kaku_rankings_v1';
+        const FALLBACK_RANKINGS = [
+            { name: "居る居る閣 龍", score: 8500, rank_title: "👑 伝説の爆熱ウナギ炒り神" },
+            { name: "さすらいシェフ", score: 5400, rank_title: "🔥 一流ウナギ炒り職人" },
+            { name: "うな吉", score: 3200, rank_title: "🍳 一人前の調理人" },
+            { name: "看板娘アオイ", score: 1800, rank_title: "見習いシェフ" },
+            { name: "新人スタッフルーキー", score: 800, rank_title: "見習いシェフ" }
+        ];
+        let rankingScope = 'daily';
 
-        function loadRankings() {
+        function loadLocalRankings() {
             try {
                 const data = localStorage.getItem(RANKING_KEY);
-                return data ? JSON.parse(data) : [
-                    { name: "居る居る閣 龍", score: 8500, rank: "👑 伝説の爆熱ウナギ炒り神" },
-                    { name: "さすらいシェフ", score: 5400, rank: "🔥 一流ウナギ炒り職人" },
-                    { name: "うな吉", score: 3200, rank: "🍳 一人前の調理人" },
-                    { name: "看板娘アオイ", score: 1800, rank: "見習いシェフ" },
-                    { name: "新人スタッフルーキー", score: 800, rank: "見習いシェフ" }
-                ];
-            } catch (e) {
-                return [];
-            }
+                if (data) return JSON.parse(data);
+            } catch (e) {}
+            return FALLBACK_RANKINGS.slice();
         }
 
-        function saveRankings(rankings) {
+        function saveLocalRankings(rankings) {
             try {
                 localStorage.setItem(RANKING_KEY, JSON.stringify(rankings.slice(0, 5)));
             } catch (e) {}
         }
 
-        function renderStartRanking() {
-            const rankings = loadRankings();
+        async function fetchRankings(scope) {
+            try {
+                const res = await fetch('/api/rankings?scope=' + scope + '&limit=5');
+                if (!res.ok) throw new Error('bad status ' + res.status);
+                const data = await res.json();
+                if (!Array.isArray(data.rankings)) throw new Error('bad payload');
+                return data.rankings;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function renderRankingRows(rankings) {
             const listEl = $('ranking-list');
             listEl.innerHTML = '';
+            if (!rankings.length) {
+                const li = document.createElement('li');
+                li.className = 'text-center text-stone-400 text-xs py-4';
+                li.textContent = 'まだ記録がありません。最初の職人になろう！';
+                listEl.appendChild(li);
+                return;
+            }
 
             rankings.slice(0, 5).forEach((item, index) => {
                 const li = document.createElement('li');
                 li.className = 'flex justify-between items-center bg-black/40 px-2 py-1 rounded border border-amber-900/40';
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
-                li.innerHTML = `
-                    <span class="font-bold text-amber-200 truncate max-w-[110px]">${medal} ${item.name}</span>
-                    <span class="font-black text-amber-400 tracking-wider">${item.score} pt</span>
-                `;
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'font-bold text-amber-200 truncate max-w-[110px]';
+                nameSpan.textContent = medal + ' ' + String(item.name ?? '???').slice(0, 20);
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'font-black text-amber-400 tracking-wider';
+                scoreSpan.textContent = Number(item.score ?? 0) + ' pt';
+                li.appendChild(nameSpan);
+                li.appendChild(scoreSpan);
                 listEl.appendChild(li);
             });
         }
 
-        function checkAndHandleHighScore(score, rankTitle) {
-            const rankings = loadRankings();
-            const isTop5 = rankings.length < 5 || score > rankings[rankings.length - 1].score;
+        function updateRankingTabs() {
+            const daily = $('ranking-tab-daily');
+            const alltime = $('ranking-tab-alltime');
+            if (!daily || !alltime) return;
+            const active = 'flex-1 text-[11px] font-bold px-2 py-1 rounded-lg border border-amber-500 bg-amber-500 text-black cursor-pointer transition';
+            const inactive = 'flex-1 text-[11px] font-bold px-2 py-1 rounded-lg border border-amber-800 text-amber-300 cursor-pointer transition';
+            daily.className = rankingScope === 'daily' ? active : inactive;
+            alltime.className = rankingScope === 'alltime' ? active : inactive;
+        }
 
+        async function renderStartRanking() {
+            updateRankingTabs();
+            const listEl = $('ranking-list');
+            const rows = await fetchRankings(rankingScope);
+            if (rows) {
+                if (!rows.length && rankingScope === 'daily') {
+                    // デイリー初日は全期間を表示して空を見せない
+                    const all = await fetchRankings('alltime');
+                    renderRankingRows(all && all.length ? all : loadLocalRankings());
+                } else {
+                    renderRankingRows(rows);
+                    saveLocalRankings(rows.map((r) => ({ name: r.name, score: r.score, rank: r.rank_title })));
+                }
+            } else {
+                renderRankingRows(loadLocalRankings());
+            }
+        }
+
+        function switchRankingScope(scope) {
+            if (rankingScope === scope) return;
+            rankingScope = scope;
+            renderStartRanking();
+
+            if ($('ranking-tab-daily')) $('ranking-tab-daily').addEventListener('click', () => switchRankingScope('daily'));
+            if ($('ranking-tab-alltime')) $('ranking-tab-alltime').addEventListener('click', () => switchRankingScope('alltime'));
+        }
+
+        function checkAndHandleHighScore(score, rankTitle) {
             const inputContainer = $('high-score-input-container');
-            if (isTop5 && score > 0) {
-                inputContainer.classList.remove('hidden');
-                $('btn-save-score').onclick = () => {
+            if (!(score > 0)) {
+                inputContainer.classList.add('hidden');
+                return;
+            }
+            // サーバー側で順位判定するため、スコア>0は常時登録可とする
+            inputContainer.classList.remove('hidden');
+            $('btn-save-score').onclick = async () => {
+                const btn = $('btn-save-score');
+                btn.disabled = true;
+                try {
+                    const name = $('player-name-input').value.trim().slice(0, 8) || 'ウナギ職人';
+                    const st = (gameState && gameState.stats) || { cooked: 0, trashed: 0, saved: 0, burned: 0 };
+                    const res = await fetch('/api/scores', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({
+                            name,
+                            score,
+                            rankTitle,
+                            fried: st.cooked ?? 0,
+                            discarded: st.trashed ?? 0,
+                            saved: st.saved ?? 0,
+                            burned: st.burned ?? 0
+                        })
+                    });
+                    if (!res.ok) throw new Error('save failed: ' + res.status);
+                    const data = await res.json();
+                    inputContainer.classList.add('hidden');
+                    rankingScope = 'daily';
+                    await renderStartRanking();
+                    showJudgementText('ランキングに登録しました！(本日' + (data.rankInDaily ?? '?') + '位)', '#fef08a');
+                } catch (e) {
+                    // オフライン時は従来通り端末内保存
+                    const rankings = loadLocalRankings();
                     const name = $('player-name-input').value.trim() || 'ウナギ職人';
                     rankings.push({ name, score, rank: rankTitle });
                     rankings.sort((a, b) => b.score - a.score);
-                    saveRankings(rankings);
+                    saveLocalRankings(rankings);
                     inputContainer.classList.add('hidden');
-                    renderStartRanking();
-                    showJudgementText("ランキングに登録しました！", "#fef08a");
-                };
-            } else {
-                inputContainer.classList.add('hidden');
-            }
+                    renderRankingRows(loadLocalRankings());
+                    showJudgementText('オフラインのため端末内に保存しました', '#fef08a');
+                } finally {
+                    btn.disabled = false;
+                }
+            };
         }
 
         // --- チュートリアルツアー処理 ---
@@ -1234,6 +1047,4 @@
                 window.open(url, '_blank');
             });
         });
-    </script>
-</body>
-</html>
+    
