@@ -112,8 +112,9 @@ export function actionSort(chosenType) {
             const lostCount = gameState.wok.eelCount;
             if (lostCount > 0) {
                 gameState.stats.burned += lostCount;
-                resetWok();
+                // handleMissは鍋の残数から減点(120×匹)を算出するため、resetWokより先に呼ぶ
                 handleMiss(`危険物混入！ウナギ${lostCount}匹全滅！`);
+                resetWok();
             }
             else {
                 resetWok();
