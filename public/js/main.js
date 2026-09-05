@@ -5,19 +5,22 @@ import { actionPullOut, actionSort, startGame } from "./impl/gameActions.js";
 import { gameState } from "./impl/gameStore.js";
 import { initParticles } from "./impl/particles.js";
 import { buildShareText } from "./pure/rankingLogic.js";
-import { renderStartRanking } from "./impl/rankingView.js";
+import { renderStartRanking, switchRankingScope } from "./impl/rankingView.js";
 import { clearAllHighlights, startTutorialMode } from "./impl/tutorial.js";
 import { $, els, initDom } from "./impl/ui/dom.js";
 function init() {
     initDom();
     initParticles();
-    renderStartRanking();
+    void renderStartRanking();
+    // ランキングタブ切替（initで1回だけ配線する）
+    $("ranking-tab-daily").addEventListener("click", () => switchRankingScope("daily"));
+    $("ranking-tab-alltime").addEventListener("click", () => switchRankingScope("alltime"));
     $("btn-start").addEventListener("click", startGame);
     $("btn-retry").addEventListener("click", startGame);
     // タイトル画面へ戻るボタン
     $("btn-home").addEventListener("click", () => {
         $("modal-result").classList.add("hidden");
-        renderStartRanking();
+        void renderStartRanking();
         $("modal-start").classList.remove("hidden");
     });
     // チュートリアル関連
@@ -27,7 +30,7 @@ function init() {
         $("tutorial-banner").classList.add("hidden");
         els.tutBadge?.classList.add("hidden");
         gameState.isTutorial = false;
-        renderStartRanking();
+        void renderStartRanking();
         $("modal-start").classList.remove("hidden");
     });
     // BGM
