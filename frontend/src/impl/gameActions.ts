@@ -229,7 +229,8 @@ export function actionPullOut(): void {
     } else {
       showJudgementText(`美味！${finalPoints}pt獲得！`, "#fbbf24");
     }
-  } else if (gameState.wok.status === "raw") {
+  } else if (gameState.wok.status === "raw" || gameState.wok.status === "empty") {
+    // empty: 投入直後で初回tick前の救済（調理度0=生揚げ扱い）
     sfx.sizzle(1);
     addScore(calcRawPullPoints(count));
     gameState.stats.cooked += count;
