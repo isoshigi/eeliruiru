@@ -90,7 +90,7 @@ TOP5入りすると名前入力で端末内ランキングに登録できる。X
 
 - フロント：`public/index.html`＋`public/app.js`（Tailwind CDN、Google Fonts、Canvasパーティクル）
 - 音源：`public/assets/audio/*.mp3` を優先再生、欠落時は Web Audio 合成フォールバック
-- API：Workers＋Hono（TypeScript、`src/worker.ts`）
+- API：Workers＋Hono（TypeScript、`backend/src/worker.ts`）
 - DB：D1（`scores` テーブル、日次 `season`＝JST日付＋全期間の2軸）
 - ランキング：オンライン（D1）優先、取得失敗時は端末内 `localStorage` にフォールバック
 
@@ -151,9 +151,10 @@ X共有も自己申告ベースのため、正式なスコアアタック機能�
 │   ├── index.html        # ゲーム画面
 │   ├── app.js            # ゲーム本体
 │   └── assets/audio/     # BGM・SE（bgm/sizzle/trash/dolphin/pull/miss.mp3）
-├── src/
-│   ├── worker.ts         # Hono API（/api/health, /api/rankings, /api/scores）
-│   └── db.ts             # D1クエリ層・JST日付
+├── backend/
+│   └── src/
+│       ├── worker.ts         # Hono API（/api/health, /api/rankings, /api/scores）
+│       └── db.ts             # D1クエリ層・JST日付
 ├── migrations/
 │   └── 0001_create_scores.sql
 ├── wrangler.jsonc
