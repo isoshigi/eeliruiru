@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS scores (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL CHECK(length(name) BETWEEN 1 AND 20),
+  score INTEGER NOT NULL CHECK(score BETWEEN 0 AND 99999),
+  rank_title TEXT NOT NULL DEFAULT '',
+  fried INTEGER NOT NULL DEFAULT 0 CHECK(fried BETWEEN 0 AND 999),
+  discarded INTEGER NOT NULL DEFAULT 0 CHECK(discarded BETWEEN 0 AND 999),
+  saved INTEGER NOT NULL DEFAULT 0 CHECK(saved BETWEEN 0 AND 999),
+  burned INTEGER NOT NULL DEFAULT 0 CHECK(burned BETWEEN 0 AND 999),
+  season TEXT NOT NULL,
+  ip_hash TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_scores_season_score ON scores(season, score DESC, id ASC);
+CREATE INDEX IF NOT EXISTS idx_scores_score ON scores(score DESC, id ASC);
