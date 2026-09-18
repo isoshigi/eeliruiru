@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { GAME_TIME_LEFT, TUTORIAL_TIME_LEFT, createInitialGameState } from "../../frontend/src/pure/gameState.js";
 import {
-  TUTORIAL_TOTAL_STEPS,
+  createInitialGameState,
+  GAME_TIME_LEFT,
+  TUTORIAL_TIME_LEFT,
+} from "../../frontend/src/pure/gameState.js";
+import {
   isTutorialFinished,
   shouldAdvanceTutorial,
   shouldFinishTutorialOnPull,
+  TUTORIAL_TOTAL_STEPS,
 } from "../../frontend/src/pure/tutorialLogic.js";
 
 describe("createInitialGameState: 初期状態（旧 startGame/startTutorialMode と同一）", () => {

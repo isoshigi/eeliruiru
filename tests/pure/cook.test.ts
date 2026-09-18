@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { COOK_STEP, getCookStatus, getPullMultiplier, stepCookProgress } from "../../frontend/src/pure/cook.js";
+import {
+  COOK_STEP,
+  getCookStatus,
+  getPullMultiplier,
+  stepCookProgress,
+} from "../../frontend/src/pure/cook.js";
 
 // 仕様: 調理ステータスは raw <50 / perfect 50-85 / burning 85-100 / burned 100以上
 describe("getCookStatus: 進捗値から調理状態を求める", () => {

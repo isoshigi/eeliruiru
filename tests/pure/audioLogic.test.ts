@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   BGM_MELODY,
   BGM_SCALE,
-  PERFECT_PULL_FREQS,
   getBgmNoteFreq,
   getPerfectPullNotes,
+  PERFECT_PULL_FREQS,
   sizzleBaseFreq,
 } from "../../frontend/src/pure/audioLogic.js";
 

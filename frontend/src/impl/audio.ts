@@ -25,7 +25,8 @@ export class SoundFX {
   seCursor: Record<SeName, number> = { sizzle: 0, trash: 0, dolphin: 0, pull: 0, miss: 0 };
 
   ensureFileAudio(): void {
-    if (this.fileAudio || typeof window === "undefined" || typeof window.Audio === "undefined") return;
+    if (this.fileAudio || typeof window === "undefined" || typeof window.Audio === "undefined")
+      return;
     try {
       const mk = (src: string, volume: number): HTMLAudioElement => {
         const el = new window.Audio(src);
@@ -42,7 +43,11 @@ export class SoundFX {
         ["miss", 0.6],
       ];
       for (const [name, volume] of entries) {
-        pools[name] = [mk(AUDIO_FILES[name], volume), mk(AUDIO_FILES[name], volume), mk(AUDIO_FILES[name], volume)];
+        pools[name] = [
+          mk(AUDIO_FILES[name], volume),
+          mk(AUDIO_FILES[name], volume),
+          mk(AUDIO_FILES[name], volume),
+        ];
         pools[name].forEach((el) => {
           el.addEventListener("error", () => {
             this.fileOk[name] = false;
@@ -62,7 +67,7 @@ export class SoundFX {
         if (this.fileOk.bgm !== false) this.fileOk.bgm = true;
       });
       this.fileAudio = { bgm, pools };
-    } catch (e) {
+    } catch {
       /* file audio unsupported -> synth only */
     }
   }
@@ -70,9 +75,11 @@ export class SoundFX {
   init(): void {
     if (!this.ctx) {
       try {
-        const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        const AC =
+          window.AudioContext ??
+          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (AC) this.ctx = new AC();
-      } catch (e) {
+      } catch {
         /* no audio */
       }
     }
@@ -97,7 +104,7 @@ export class SoundFX {
         });
       }
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -131,7 +138,7 @@ export class SoundFX {
             });
         }
         return;
-      } catch (e) {
+      } catch {
         /* fall through to synth */
       }
     }
@@ -143,7 +150,7 @@ export class SoundFX {
       if (this.fileAudio) {
         this.fileAudio.bgm.pause();
       }
-    } catch (e) {
+    } catch {
       /* ignore */
     }
     this.stopSynthBGM();
@@ -182,7 +189,7 @@ export class SoundFX {
       gain.connect(this.ctx.destination);
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
-    } catch (e) {
+    } catch {
       /* ignore */
     }
   }

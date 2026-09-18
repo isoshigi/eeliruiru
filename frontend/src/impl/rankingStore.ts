@@ -22,7 +22,7 @@ export function loadLocalRankings(): LocalRanking[] {
   try {
     const data = localStorage.getItem(RANKING_KEY);
     if (data) return JSON.parse(data) as LocalRanking[];
-  } catch (e) {
+  } catch {
     /* ignore */
   }
   return FALLBACK_RANKINGS.slice();
@@ -31,7 +31,7 @@ export function loadLocalRankings(): LocalRanking[] {
 export function saveLocalRankings(rankings: LocalRanking[]): void {
   try {
     localStorage.setItem(RANKING_KEY, JSON.stringify(rankings.slice(0, 5)));
-  } catch (e) {
+  } catch {
     /* ignore */
   }
 }
