@@ -18,6 +18,7 @@ jobs:
           cache: true
       - run: mise ls && node -v && wrangler --version
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm run typecheck:frontend
       - run: npm test
