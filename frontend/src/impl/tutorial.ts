@@ -5,7 +5,7 @@
 
 import { getCookStatus } from "../pure/cook.js";
 import { ITEMS, type Item } from "../pure/items.js";
-import { TUTORIAL_TOTAL_STEPS, isTutorialFinished } from "../pure/tutorialLogic.js";
+import { isTutorialFinished } from "../pure/tutorialLogic.js";
 import { sfx } from "./audio.js";
 import { resetWok, updateWokCooking } from "./gameActions.js";
 import { gameState, resetGameState } from "./gameStore.js";
@@ -62,8 +62,6 @@ export const tutSteps: TutStepDef[] = [
     itemToSet: ITEMS[0],
   },
 ];
-
-void TUTORIAL_TOTAL_STEPS;
 
 export function startTutorialMode(): void {
   sfx.init();
