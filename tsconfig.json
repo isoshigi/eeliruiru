@@ -2,7 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["es2022", "dom", "dom.iterable"],
-    "types": ["@cloudflare/workers-types", "node"]
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers", "node"]
   },
   "include": ["backend/src/**/*.ts", "frontend/src/**/*.ts", "shared/src/**/*.ts", "tests/**/*.ts"]
 }
