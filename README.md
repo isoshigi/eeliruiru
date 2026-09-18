@@ -8,11 +8,11 @@
 
 ## 遊び方
 
-1. `index.html` をブラウザで開く（ダブルクリック、またはブラウザへのドラッグ＆ドロップ）
+1. 開発サーバー（`npm run dev`）で配信される http://127.0.0.1:8787 をブラウザで開く
 2. タイトル画面で「開店！」を押すと60秒計測スタート
 3. 初めての場合は「チュートリアル」から練習できる（時間制限なし、全4STEP）
 
-インストール不要、ビルド不要。インターネット接続は Tailwind CDN と Google Fonts の読み込みにのみ使用する。
+`public/js/main.js` はビルド成果物のため、事前に `npm run build:frontend`（または `npm run dev`）で生成する。インターネット接続は Tailwind CDN と Google Fonts の読み込みにのみ使用する。
 
 ## ルール
 
@@ -90,7 +90,10 @@ TOP5入りすると名前入力で端末内ランキングに登録できる。X
 
 ## 技術構成
 
-- フロント：`public/index.html`＋`public/app.js`（Tailwind CDN、Google Fonts、Canvasパーティクル）
+- フロント：`frontend/src`（TypeScript）を esbuild で `public/js/main.js` にバンドル。`public/index.html`（Tailwind CDN、Google Fonts、Canvasパーティクル）が読み込む
+  - `frontend/src/pure/`：純粋ロジック（ユニットテスト対象）
+  - `frontend/src/impl/`：DOM・通信・音声などの副作用
+- 共有：`shared/src`（型・スコア計算・称号・API変換）をフロント／バックエンド双方が参照
 - 音源：`public/assets/audio/*.mp3` を優先再生、欠落時は Web Audio 合成フォールバック
 - API：Workers＋Hono（TypeScript、`backend/src/worker.ts`）
 - DB：D1（`scores` テーブル、日次 `season`＝JST日付＋全期間の2軸）
@@ -98,14 +101,19 @@ TOP5入りすると名前入力で端末内ランキングに登録できる。X
 
 ## 開発手順
 
-前提：Node.js（`mise.toml` のバージョン）
+前提：Node.js / Wrangler（`mise.toml` のバージョン）
 
 ```sh
 npm install
 npm run db:migrate:local   # ローカルD1にマイグレーション適用
-npm run dev                # http://127.0.0.1:8787 で起動
-npm run typecheck          # TypeScript検査
+npm run dev                # esbuild watch + wrangler dev（http://127.0.0.1:8787）
+npm run build:frontend     # public/js/main.js を単体ビルド（ブラウザで直接確認する場合）
+npm run typecheck          # バックエンドの TypeScript 検査
+npm run typecheck:frontend # フロントエンドの TypeScript 検査
+npm test                   # ユニットテスト（Vitest）
 ```
+
+`public/js/main.js` はビルド成果物のため git 管理外。ブラウザや `wrangler dev` で動かす前に `npm run dev` か `npm run build:frontend` で生成する。
 
 本番D1は作成済み（`eeliruiru-db`、APAC、テーブル適用済み）。再作成時のみ：
 
@@ -149,17 +157,28 @@ X共有も自己申告ベースのため、正式なスコアアタック機能�
 
 ```text
 ./
-├── public/
-│   ├── index.html        # ゲーム画面
-│   ├── app.js            # ゲーム本体
-│   └── assets/audio/     # BGM・SE（bgm/sizzle/trash/dolphin/pull/miss.mp3）
+├── frontend/
+│   └── src/
+│       ├── main.ts            # エントリ（DOMContentLoaded で初期化）
+│       ├── pure/              # 純粋ロジック（テスト対象）
+│       └── impl/              # DOM・通信・音声など副作用
+├── shared/
+│   └── src/                   # フロント／バックエンド共用（型・スコア・称号・API変換）
 ├── backend/
 │   └── src/
 │       ├── worker.ts         # Hono API（/api/health, /api/rankings, /api/scores）
 │       └── db.ts             # D1クエリ層・JST日付
+├── tests/                    # Vitest（pure / shared）
+├── scripts/
+│   └── build-frontend.mjs    # esbuild でのフロントバンドル
+├── public/
+│   ├── index.html            # ゲーム画面
+│   ├── js/main.js            # ビルド成果物（git管理外）
+│   └── assets/audio/         # BGM・SE（bgm/sizzle/trash/dolphin/pull/miss.mp3）
 ├── migrations/
 │   └── 0001_create_scores.sql
 ├── wrangler.jsonc
 ├── package.json
+├── mise.toml
 └── README.md
 ```
