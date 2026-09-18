@@ -6,7 +6,7 @@ import { ABS_SCORE_CAP, SCORE_MAX, STAT_MAX } from "../../shared/src/scoreLimits
 import { rankingBucketStartISO, secondsToNextBucket } from "../../shared/src/time.js";
 import { getRankings, insertScore, rankInScope, recentPostsByHash, todaySeasonJST } from "./db";
 
-interface Env {
+export interface Env {
   DB: D1Database;
   SCORE_SALT?: string;
 }

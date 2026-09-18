@@ -17,7 +17,9 @@
     "format": "biome format --write",
     "check": "biome check",
     "check:fix": "biome check --write",
-    "test": "vitest run",
+    "test": "npm run test:unit && npm run test:workers",
+    "test:unit": "vitest run",
+    "test:workers": "vitest run -c vitest.workers.config.ts",
     "test:watch": "vitest"
   },
   "keywords": [],
@@ -30,12 +32,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
     "@cloudflare/workers-types": "^5.20260905.1",
     "@types/node": "^26.4.1",
     "concurrently": "^10.0.5",
     "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0",
+    "vitest": "^4.1.11",
     "wrangler": "^4.129.0"
   }
 }
