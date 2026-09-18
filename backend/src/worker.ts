@@ -1,5 +1,8 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import { normalizePlayerName, PLAYER_NAME_MAX_LEN } from "../../shared/src/playerName.js";
+import { getRankTitle } from "../../shared/src/rank.js";
+import { ABS_SCORE_CAP, SCORE_MAX, STAT_MAX } from "../../shared/src/scoreLimits.js";
 import { getRankings, insertScore, rankInScope, recentPostsByHash, todaySeasonJST } from "./db";
 
 interface Env {
@@ -10,17 +13,15 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 
 const ScoreBody = z.object({
-  name: z.string().trim().min(1).max(20),
-  score: z.number().int().min(0).max(99999),
+  name: z.string().trim().min(1).max(PLAYER_NAME_MAX_LEN),
+  score: z.number().int().min(0).max(SCORE_MAX),
+  // 称号はサーバーで再計算するため受け取るだけで使わない（旧クライアント互換）。
   rankTitle: z.string().max(60).default(""),
-  fried: z.number().int().min(0).max(999).default(0),
-  discarded: z.number().int().min(0).max(999).default(0),
-  saved: z.number().int().min(0).max(999).default(0),
-  burned: z.number().int().min(0).max(999).default(0),
+  fried: z.number().int().min(0).max(STAT_MAX).default(0),
+  discarded: z.number().int().min(0).max(STAT_MAX).default(0),
+  saved: z.number().int().min(0).max(STAT_MAX).default(0),
+  burned: z.number().int().min(0).max(STAT_MAX).default(0),
 });
-
-/** 60秒プレイの物理上限を超えるスコアは拒否（5匹黄金連打の理論値を余裕見て設定）。 */
-const ABS_SCORE_CAP = 60000;
 
 async function sha256Hex(input: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
@@ -48,7 +49,7 @@ app.post("/api/scores", async (c) => {
   if (!parsed.success) {
     return c.json({ error: "invalid body", issues: parsed.error.issues }, 400);
   }
-  const { name, score, rankTitle, fried, discarded, saved, burned } = parsed.data;
+  const { name, score, fried, discarded, saved, burned } = parsed.data;
   if (score > ABS_SCORE_CAP) {
     return c.json({ error: "score exceeds physical cap" }, 400);
   }
@@ -62,13 +63,8 @@ app.post("/api/scores", async (c) => {
   }
 
   const season = todaySeasonJST();
-  // タグ混入防止：<>を除去（フロントでもtextContentで描画）
-  const cleanName =
-    name
-      .replace(/[<>"&]/g, "")
-      .trim()
-      .slice(0, 20) || "ウナギ職人";
-  const cleanRank = rankTitle.replace(/[<>"&]/g, "").slice(0, 60);
+  const cleanName = normalizePlayerName(name);
+  const cleanRank = getRankTitle(score, burned);
   const id = await insertScore(c.env.DB, {
     name: cleanName,
     score,
