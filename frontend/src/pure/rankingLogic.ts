@@ -1,4 +1,12 @@
 // ランキング表示ロジック（元: public/app.js renderRankingRows / checkAndHandleHighScore / btn-share）
+// 名前正規化は shared に集約し、既存の呼び名 (sanitizePlayerName) も互換のため再エクスポートする。
+export {
+  normalizePlayerName,
+  normalizePlayerName as sanitizePlayerName,
+  PLAYER_NAME_FALLBACK,
+  PLAYER_NAME_MAX_LEN,
+  stripUnsafeChars,
+} from "../../../shared/src/playerName.js";
 
 export interface RankingRow {
   name: string;
@@ -6,8 +14,6 @@ export interface RankingRow {
 }
 
 export const RANKING_MAX_ROWS = 5;
-export const PLAYER_NAME_FALLBACK = "ウナギ職人";
-export const PLAYER_NAME_MAX_LEN = 8;
 
 const MEDALS = ["🥇", "🥈", "🥉"] as const;
 
@@ -23,15 +29,6 @@ export function sortRankings<T extends RankingRow>(rows: readonly T[]): T[] {
     .slice()
     .sort((a, b) => b.score - a.score)
     .slice(0, RANKING_MAX_ROWS);
-}
-
-/**
- * 登録名の整形。旧実装の登録成功パス: value.trim().slice(0,8) || 'ウナギ職人'
- * ※端末保存フォールバック側は slice なしのまま impl 側に残す（挙動据え置き）。
- */
-export function sanitizePlayerName(raw: string, maxLen: number = PLAYER_NAME_MAX_LEN): string {
-  const trimmed = raw.trim().slice(0, maxLen);
-  return trimmed || PLAYER_NAME_FALLBACK;
 }
 
 /** X共有文。旧実装のテンプレをそのまま切り出し。 */

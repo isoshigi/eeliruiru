@@ -3,9 +3,14 @@
 //     switchRankingScope / checkAndHandleHighScore
 // タブのクリック配線は main.ts の init で1回だけ行う。
 
+import {
+  type RankingScope,
+  type ServerRanking,
+  toSaveScorePayload,
+} from "../../../shared/src/api.js";
 import { getMedalLabel, sanitizePlayerName, sortRankings } from "../pure/rankingLogic.js";
 import { gameState } from "./gameStore.js";
-import { fetchRankings, postScore, type RankingScope, type ServerRanking } from "./rankingApi.js";
+import { fetchRankings, postScore } from "./rankingApi.js";
 import { loadLocalRankings, saveLocalRankings } from "./rankingStore.js";
 import { $ } from "./ui/dom.js";
 import { showJudgementText } from "./ui/judgement.js";
@@ -95,15 +100,7 @@ export function checkAndHandleHighScore(score: number, rankTitle: string): void 
     try {
       const name = sanitizePlayerName(($("player-name-input") as HTMLInputElement).value);
       const st = gameState?.stats || { cooked: 0, trashed: 0, saved: 0, burned: 0 };
-      const data = await postScore({
-        name,
-        score,
-        rankTitle,
-        fried: st.cooked ?? 0,
-        discarded: st.trashed ?? 0,
-        saved: st.saved ?? 0,
-        burned: st.burned ?? 0,
-      });
+      const data = await postScore(toSaveScorePayload(name, score, rankTitle, st));
       inputContainer.classList.add("hidden");
       rankingScope = "daily";
       await renderStartRanking();
@@ -111,7 +108,7 @@ export function checkAndHandleHighScore(score: number, rankTitle: string): void 
     } catch {
       // オフライン時は従来通り端末内保存
       const rankings = loadLocalRankings();
-      const name = ($("player-name-input") as HTMLInputElement).value.trim() || "ウナギ職人";
+      const name = sanitizePlayerName(($("player-name-input") as HTMLInputElement).value);
       rankings.push({ name, score, rank: rankTitle });
       const sorted = sortRankings(rankings);
       saveLocalRankings(sorted);

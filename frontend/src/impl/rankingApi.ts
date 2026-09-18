@@ -1,23 +1,8 @@
 // オンラインランキング通信（非純粋: fetch）
-// 元: public/app.js fetchRankings / checkAndHandleHighScore 内の POST
+// 型は shared を単一の真実源とし、既存 import 互換のため再エクスポートする。
+import type { RankingScope, SaveScorePayload, ServerRanking } from "../../../shared/src/api.js";
 
-export type RankingScope = "daily" | "alltime";
-
-export interface ServerRanking {
-  name: string;
-  score: number;
-  rank_title?: string;
-}
-
-export interface SaveScorePayload {
-  name: string;
-  score: number;
-  rankTitle: string;
-  fried: number;
-  discarded: number;
-  saved: number;
-  burned: number;
-}
+export type { RankingScope, SaveScorePayload, ServerRanking } from "../../../shared/src/api.js";
 
 export async function fetchRankings(scope: RankingScope): Promise<ServerRanking[] | null> {
   try {
@@ -35,15 +20,7 @@ export async function postScore(payload: SaveScorePayload): Promise<{ rankInDail
   const res = await fetch("/api/scores", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      name: payload.name,
-      score: payload.score,
-      rankTitle: payload.rankTitle,
-      fried: payload.fried,
-      discarded: payload.discarded,
-      saved: payload.saved,
-      burned: payload.burned,
-    }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`save failed: ${res.status}`);
   return (await res.json()) as { rankInDaily?: number };
