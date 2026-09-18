@@ -13,6 +13,10 @@
     "typecheck": "tsc -p tsconfig.backend.json",
     "typecheck:frontend": "tsc -p tsconfig.frontend.json",
     "build:frontend": "node scripts/build-frontend.mjs",
+    "lint": "biome lint",
+    "format": "biome format --write",
+    "check": "biome check",
+    "check:fix": "biome check --write",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -25,6 +29,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
     "@cloudflare/workers-types": "^5.20260905.1",
     "@types/node": "^26.4.1",
     "concurrently": "^10.0.5",
