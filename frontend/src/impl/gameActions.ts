@@ -5,7 +5,7 @@
 // 点数・抽選・称号の判定は pure/* に委譲し、数値は旧実装と同一にする。
 
 import { getCookStatus, getPullMultiplier, stepCookProgress } from "../pure/cook.js";
-import { isCorrectSort, pickNextItem, type ChosenType } from "../pure/items.js";
+import { type ChosenType, isCorrectSort, pickNextItem } from "../pure/items.js";
 import {
   applyMissPenalty,
   calcMissPenalty,

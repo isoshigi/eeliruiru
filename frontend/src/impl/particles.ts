@@ -5,9 +5,9 @@
 import {
   isParticleDead,
   makeExplosionSpecs,
+  type ParticleState,
   particleAlpha,
   stepParticle,
-  type ParticleState,
 } from "../pure/particlesLogic.js";
 
 export class Particle {
@@ -20,7 +20,15 @@ export class Particle {
   life: number;
   maxLife: number;
 
-  constructor(x: number, y: number, color: string, size: number, vx: number, vy: number, life: number) {
+  constructor(
+    x: number,
+    y: number,
+    color: string,
+    size: number,
+    vx: number,
+    vy: number,
+    life: number,
+  ) {
     this.x = x;
     this.y = y;
     this.color = color;
@@ -72,7 +80,9 @@ function resizeCanvas(): void {
 
 export function createExplosion(x: number, y: number, colors: readonly string[], count = 30): void {
   for (const spec of makeExplosionSpecs(x, y, colors, count)) {
-    particles.push(new Particle(spec.x, spec.y, spec.color, spec.size, spec.vx, spec.vy, spec.life));
+    particles.push(
+      new Particle(spec.x, spec.y, spec.color, spec.size, spec.vx, spec.vy, spec.life),
+    );
   }
 }
 

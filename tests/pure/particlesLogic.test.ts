@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   isParticleDead,
   makeExplosionSpecs,
+  type ParticleState,
   particleAlpha,
   stepParticle,
-  type ParticleState,
 } from "../../frontend/src/pure/particlesLogic.js";
 
 const base: ParticleState = {

@@ -1,9 +1,10 @@
 // frontend/src/main.ts を単一の public/js/main.js にバンドルする。
 // --watch 付きで起動すると esbuild の watch モードになり、変更を検知して再ビルドする。
-import { build, context } from "esbuild";
+
 import { rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { build, context } from "esbuild";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outdir = resolve(root, "public/js");

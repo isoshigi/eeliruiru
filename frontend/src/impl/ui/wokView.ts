@@ -1,8 +1,12 @@
 // 鍋UI描画（非純粋: DOM）。元: public/app.js updateWokUI / resetWokUI
 // 文言は pure/wokViewModel.ts から取得し、クラス付与は旧実装どおり。
 
+import {
+  EMPTY_PULL_BONUS_TEXT,
+  getPullBonusText,
+  getWokBadgeText,
+} from "../../pure/wokViewModel.js";
 import { gameState } from "../gameStore.js";
-import { EMPTY_PULL_BONUS_TEXT, getPullBonusText, getWokBadgeText } from "../../pure/wokViewModel.js";
 import { els } from "./dom.js";
 
 // 5匹入っても崩れない頑丈なWok UI描画関数（旧実装のマップをそのまま移設）
@@ -16,7 +20,16 @@ const COUNT_DISPLAY_HTML: Readonly<Record<number, string>> = {
 
 export function updateWokUI(): void {
   const w = gameState.wok;
-  if (!els.cookProgress || !els.wokContainer || !els.steamEffect || !els.wokBadge || !els.wokEmoji || !els.wokStatusText || !els.pullBonusText) return;
+  if (
+    !els.cookProgress ||
+    !els.wokContainer ||
+    !els.steamEffect ||
+    !els.wokBadge ||
+    !els.wokEmoji ||
+    !els.wokStatusText ||
+    !els.pullBonusText
+  )
+    return;
   els.cookProgress.style.width = `${w.cookProgress}%`;
 
   els.wokContainer.classList.remove("sizzle-perfect-super", "border-red-600");
@@ -40,19 +53,30 @@ export function updateWokUI(): void {
     els.wokStatusText.className = "text-xs md:text-sm font-bold text-amber-300 truncate";
   } else if (w.status === "perfect") {
     els.wokStatusText.innerText = `【要る！】極上の焼き加減！(${w.eelCount}匹)`;
-    els.wokStatusText.className = "text-xs md:text-sm font-black text-yellow-300 animate-pulse truncate";
+    els.wokStatusText.className =
+      "text-xs md:text-sm font-black text-yellow-300 animate-pulse truncate";
     els.wokContainer.classList.add("sizzle-perfect-super");
     els.steamEffect.classList.remove("hidden");
   } else if (w.status === "burning") {
     els.wokStatusText.innerText = "焦げる！今すぐ盛れ！";
-    els.wokStatusText.className = "text-xs md:text-sm font-black text-red-400 animate-bounce truncate";
+    els.wokStatusText.className =
+      "text-xs md:text-sm font-black text-red-400 animate-bounce truncate";
     els.wokContainer.classList.add("border-red-600");
     els.steamEffect.classList.remove("hidden");
   }
 }
 
 export function resetWokUI(): void {
-  if (!els.cookProgress || !els.wokContainer || !els.steamEffect || !els.wokBadge || !els.wokEmoji || !els.wokStatusText || !els.pullBonusText) return;
+  if (
+    !els.cookProgress ||
+    !els.wokContainer ||
+    !els.steamEffect ||
+    !els.wokBadge ||
+    !els.wokEmoji ||
+    !els.wokStatusText ||
+    !els.pullBonusText
+  )
+    return;
   els.cookProgress.style.width = "0%";
   els.wokContainer.classList.remove("sizzle-perfect-super", "border-red-600");
   els.steamEffect.classList.add("hidden");

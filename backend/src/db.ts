@@ -67,17 +67,7 @@ export async function insertScore(db: D1Database, s: NewScore): Promise<number> 
       `INSERT INTO scores (name, score, rank_title, fried, discarded, saved, burned, season, ip_hash)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(
-      s.name,
-      s.score,
-      s.rankTitle,
-      s.fried,
-      s.discarded,
-      s.saved,
-      s.burned,
-      s.season,
-      s.ipHash,
-    )
+    .bind(s.name, s.score, s.rankTitle, s.fried, s.discarded, s.saved, s.burned, s.season, s.ipHash)
     .run();
   return Number(result.meta.last_row_id);
 }
@@ -103,10 +93,7 @@ export async function rankInScope(
 }
 
 /** 簡易レート制限: 直近60秒の同一ハッシュ投稿数。 */
-export async function recentPostsByHash(
-  db: D1Database,
-  ipHash: string,
-): Promise<number> {
+export async function recentPostsByHash(db: D1Database, ipHash: string): Promise<number> {
   const row = await db
     .prepare(
       `SELECT COUNT(*) AS c FROM scores
