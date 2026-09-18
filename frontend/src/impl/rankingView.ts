@@ -29,14 +29,15 @@ export function renderRankingRows(rankings: Array<{ name?: unknown; score?: unkn
 
   rankings.slice(0, 5).forEach((item, index) => {
     const li = document.createElement("li");
-    li.className = "flex justify-between items-center bg-black/40 px-2 py-1 rounded border border-amber-900/40";
+    li.className =
+      "flex justify-between items-center bg-black/40 px-2 py-1 rounded border border-amber-900/40";
     const medal = getMedalLabel(index);
     const nameSpan = document.createElement("span");
     nameSpan.className = "font-bold text-amber-200 truncate max-w-[110px]";
-    nameSpan.textContent = medal + " " + String(item.name ?? "???").slice(0, 20);
+    nameSpan.textContent = `${medal} ${String(item.name ?? "???").slice(0, 20)}`;
     const scoreSpan = document.createElement("span");
     scoreSpan.className = "font-black text-amber-400 tracking-wider";
-    scoreSpan.textContent = Number(item.score ?? 0) + " pt";
+    scoreSpan.textContent = `${Number(item.score ?? 0)} pt`;
     li.appendChild(nameSpan);
     li.appendChild(scoreSpan);
     listEl.appendChild(li);
@@ -62,10 +63,12 @@ export async function renderStartRanking(): Promise<void> {
     if (!rows.length && rankingScope === "daily") {
       // デイリー初日は全期間を表示して空を見せない
       const all = await fetchRankings("alltime");
-      renderRankingRows(all && all.length ? all : loadLocalRankings());
+      renderRankingRows(all?.length ? all : loadLocalRankings());
     } else {
       renderRankingRows(rows);
-      saveLocalRankings(rows.map((r: ServerRanking) => ({ name: r.name, score: r.score, rank: r.rank_title })));
+      saveLocalRankings(
+        rows.map((r: ServerRanking) => ({ name: r.name, score: r.score, rank: r.rank_title })),
+      );
     }
   } else {
     renderRankingRows(loadLocalRankings());
@@ -91,7 +94,7 @@ export function checkAndHandleHighScore(score: number, rankTitle: string): void 
     btn.disabled = true;
     try {
       const name = sanitizePlayerName(($("player-name-input") as HTMLInputElement).value);
-      const st = (gameState && gameState.stats) || { cooked: 0, trashed: 0, saved: 0, burned: 0 };
+      const st = gameState?.stats || { cooked: 0, trashed: 0, saved: 0, burned: 0 };
       const data = await postScore({
         name,
         score,
@@ -104,8 +107,8 @@ export function checkAndHandleHighScore(score: number, rankTitle: string): void 
       inputContainer.classList.add("hidden");
       rankingScope = "daily";
       await renderStartRanking();
-      showJudgementText("ランキングに登録しました！(本日" + (data.rankInDaily ?? "?") + "位)", "#fef08a");
-    } catch (e) {
+      showJudgementText(`ランキングに登録しました！(本日${data.rankInDaily ?? "?"}位)`, "#fef08a");
+    } catch {
       // オフライン時は従来通り端末内保存
       const rankings = loadLocalRankings();
       const name = ($("player-name-input") as HTMLInputElement).value.trim() || "ウナギ職人";

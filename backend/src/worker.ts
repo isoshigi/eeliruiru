@@ -1,12 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import {
-  getRankings,
-  insertScore,
-  rankInScope,
-  recentPostsByHash,
-  todaySeasonJST,
-} from "./db";
+import { getRankings, insertScore, rankInScope, recentPostsByHash, todaySeasonJST } from "./db";
 
 interface Env {
   DB: D1Database;
@@ -69,7 +63,11 @@ app.post("/api/scores", async (c) => {
 
   const season = todaySeasonJST();
   // タグ混入防止：<>を除去（フロントでもtextContentで描画）
-  const cleanName = name.replace(/[<>"&]/g, "").trim().slice(0, 20) || "ウナギ職人";
+  const cleanName =
+    name
+      .replace(/[<>"&]/g, "")
+      .trim()
+      .slice(0, 20) || "ウナギ職人";
   const cleanRank = rankTitle.replace(/[<>"&]/g, "").slice(0, 60);
   const id = await insertScore(c.env.DB, {
     name: cleanName,

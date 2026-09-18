@@ -5,10 +5,10 @@ import { sfx } from "./impl/audio.js";
 import { actionPullOut, actionSort, resetWok, startGame } from "./impl/gameActions.js";
 import { gameState } from "./impl/gameStore.js";
 import { initParticles } from "./impl/particles.js";
-import { buildShareText } from "./pure/rankingLogic.js";
 import { renderStartRanking, switchRankingScope } from "./impl/rankingView.js";
 import { clearAllHighlights, startTutorialMode } from "./impl/tutorial.js";
 import { $, els, initDom } from "./impl/ui/dom.js";
+import { buildShareText } from "./pure/rankingLogic.js";
 
 function init(): void {
   initDom();

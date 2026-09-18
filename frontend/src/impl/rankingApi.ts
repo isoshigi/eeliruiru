@@ -21,12 +21,12 @@ export interface SaveScorePayload {
 
 export async function fetchRankings(scope: RankingScope): Promise<ServerRanking[] | null> {
   try {
-    const res = await fetch("/api/rankings?scope=" + scope + "&limit=5");
-    if (!res.ok) throw new Error("bad status " + res.status);
+    const res = await fetch(`/api/rankings?scope=${scope}&limit=5`);
+    if (!res.ok) throw new Error(`bad status ${res.status}`);
     const data = (await res.json()) as { rankings?: unknown };
     if (!Array.isArray(data.rankings)) throw new Error("bad payload");
     return data.rankings as ServerRanking[];
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -45,6 +45,6 @@ export async function postScore(payload: SaveScorePayload): Promise<{ rankInDail
       burned: payload.burned,
     }),
   });
-  if (!res.ok) throw new Error("save failed: " + res.status);
+  if (!res.ok) throw new Error(`save failed: ${res.status}`);
   return (await res.json()) as { rankInDaily?: number };
 }

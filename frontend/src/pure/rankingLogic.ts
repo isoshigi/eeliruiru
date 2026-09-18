@@ -19,7 +19,10 @@ export function getMedalLabel(index: number): string {
 
 /** スコア降順ソート（非破壊）して上位5件に絞る。旧実装: sort((a,b)=>b.score-a.score).slice(0,5) */
 export function sortRankings<T extends RankingRow>(rows: readonly T[]): T[] {
-  return rows.slice().sort((a, b) => b.score - a.score).slice(0, RANKING_MAX_ROWS);
+  return rows
+    .slice()
+    .sort((a, b) => b.score - a.score)
+    .slice(0, RANKING_MAX_ROWS);
 }
 
 /**
