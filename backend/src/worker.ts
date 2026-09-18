@@ -3,6 +3,7 @@ import { z } from "zod";
 import { normalizePlayerName, PLAYER_NAME_MAX_LEN } from "../../shared/src/playerName.js";
 import { getRankTitle } from "../../shared/src/rank.js";
 import { ABS_SCORE_CAP, SCORE_MAX, STAT_MAX } from "../../shared/src/scoreLimits.js";
+import { rankingBucketStartISO, secondsToNextBucket } from "../../shared/src/time.js";
 import { getRankings, insertScore, rankInScope, recentPostsByHash, todaySeasonJST } from "./db";
 
 interface Env {
@@ -34,8 +35,38 @@ app.get("/api/rankings", async (c) => {
   const scope = c.req.query("scope") === "alltime" ? "alltime" : "daily";
   const limit = Math.min(Math.max(Number(c.req.query("limit") ?? 20) || 20, 1), 50);
   const season = todaySeasonJST();
+
+  // 10分バケット単位でキャッシュする。daily は season が変わりうるためキーに含める。
+  const origin = new URL(c.req.url).origin;
+  const seasonKey = scope === "daily" ? `&season=${season}` : "";
+  const cacheKey = new Request(
+    `${origin}/__cache/rankings?scope=${scope}&limit=${limit}${seasonKey}`,
+    {
+      method: "GET",
+    },
+  );
+  const cache = caches.default;
+
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    const hit = new Response(cached.body, cached);
+    hit.headers.set("x-cache", "HIT");
+    return hit;
+  }
+
   const rows = await getRankings(c.env.DB, scope, season, limit);
-  return c.json({ scope, season: scope === "daily" ? season : null, rankings: rows });
+  const response = c.json(
+    {
+      scope,
+      season: scope === "daily" ? season : null,
+      rankings: rows,
+      cachedAt: rankingBucketStartISO(),
+    },
+    { headers: { "cache-control": `public, max-age=${secondsToNextBucket()}` } },
+  );
+  response.headers.set("x-cache", "MISS");
+  c.executionCtx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
 });
 
 app.post("/api/scores", async (c) => {
