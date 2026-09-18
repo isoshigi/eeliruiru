@@ -56,9 +56,11 @@ describe("sanitizePlayerName: 登録名の整形", () => {
   it("前後空白を除去する", () => {
     expect(sanitizePlayerName("  うな吉  ")).toBe("うな吉");
   });
-  it("8文字で切り詰める", () => {
-    expect(sanitizePlayerName("123456789ABC")).toBe("12345678");
-    expect(sanitizePlayerName("あいうえおかきくけこさ")).toBe("あいうえおかきく");
+  it("20文字で切り詰める", () => {
+    expect(sanitizePlayerName("1234567890123456789012345")).toBe("12345678901234567890");
+  });
+  it("タグ混入に使える記号を除去する", () => {
+    expect(sanitizePlayerName("a<b>c&d")).toBe("abcd");
   });
   it("空・空白のみは『ウナギ職人』", () => {
     expect(sanitizePlayerName("")).toBe("ウナギ職人");
